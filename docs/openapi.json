@@ -1,0 +1,1190 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "ed-patient-flow",
+  "version": "1.0.0"
+ },
+ "paths": {
+  "/v1/jobs/{job_id}": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Status, attempts and result of a long-running job",
+    "operationId": "job_status_v1_jobs__job_id__get",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/jobs": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Jobs by status; status=dead is the dead-letter view",
+    "operationId": "job_list_v1_jobs_get",
+    "parameters": [
+     {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "default": "dead",
+       "title": "Status"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/audit": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Latest audit events and whether the hash chain verifies",
+    "operationId": "audit_log_v1_audit_get",
+    "parameters": [
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 50,
+       "title": "Limit"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/hospital:load": {
+   "post": {
+    "tags": [
+     "hospital"
+    ],
+    "summary": "(+) Load the invented department at a Tuesday 07:00: sixteen weeks of history, the live state, beds, roster; fit the models and report them",
+    "operationId": "load_hospital_v1_hospital_load_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoadIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/hospital:advance": {
+   "post": {
+    "tags": [
+     "hospital"
+    ],
+    "summary": "(+) The clock moves: the generator runs the department forward, told what happens (a surge, a discharge slowdown). The service sees the encounters and events, not the telling",
+    "operationId": "advance_v1_hospital_advance_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AdvanceIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/events/fhir": {
+   "post": {
+    "tags": [
+     "ehr"
+    ],
+    "summary": "A FHIR Bundle of Encounter resources from an EHR or an ambulance service: arrivals announced ahead become part of the live state; nothing clinical is read beyond triage level, age band and a reason code",
+    "operationId": "fhir_v1_events_fhir_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FhirIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/capacity/current": {
+   "get": {
+    "tags": [
+     "capacity"
+    ],
+    "summary": "The department now: waiting by triage level, beds, boarding, imaging queue, wards, nurses on and the ratio, with alerts where a threshold is crossed",
+    "operationId": "capacity_v1_capacity_current_get",
+    "parameters": [
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/forecast/arrivals": {
+   "get": {
+    "tags": [
+     "forecast"
+    ],
+    "summary": "Expected arrivals per hour with an 80% Poisson band and the share at triage 1-2, from the department's own day-of-week and hour profile",
+    "operationId": "forecast_arrivals_v1_forecast_arrivals_get",
+    "parameters": [
+     {
+      "name": "hours",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 48,
+       "minimum": 1,
+       "default": 24,
+       "title": "Hours"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/forecast/beds": {
+   "get": {
+    "tags": [
+     "forecast"
+    ],
+    "summary": "Ward discharges and admissions expected hour by hour, the projected free beds and the boarding that implies",
+    "operationId": "forecast_beds_v1_forecast_beds_get",
+    "parameters": [
+     {
+      "name": "hours",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 48,
+       "minimum": 1,
+       "default": 24,
+       "title": "Hours"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/simulations/flow": {
+   "post": {
+    "tags": [
+     "simulation"
+    ],
+    "summary": "Run the department forward from the live state many times: waiting, boarding, imaging queue and KPIs with bands; with actions, the same runs with the actions applied, side by side",
+    "operationId": "simulate_v1_simulations_flow_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SimIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/optimizations/staffing": {
+   "post": {
+    "tags": [
+     "recommendations"
+    ],
+    "summary": "Nurses to call in per shift so the P80 census meets the ratio (CP-SAT over the on-call pool, cheapest first), plus surge beds and a discharge push where the simulation says they help. Proposed, not active, until a director approves",
+    "operationId": "staffing_v1_optimizations_staffing_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StaffIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/recommendations/{rec_id}/approve": {
+   "post": {
+    "tags": [
+     "recommendations"
+    ],
+    "summary": "An operations director approves (or rejects) a proposed recommendation; only then do its actions count in the capacity view and later simulations",
+    "operationId": "approve_v1_recommendations__rec_id__approve_post",
+    "parameters": [
+     {
+      "name": "rec_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Rec Id"
+      }
+     },
+     {
+      "name": "decision",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "approved",
+        "rejected"
+       ],
+       "type": "string",
+       "default": "approved",
+       "title": "Decision"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/recommendations": {
+   "get": {
+    "tags": [
+     "recommendations"
+    ],
+    "summary": "(+) Recommendations with their status, rationale and expected effect",
+    "operationId": "recommendations_v1_recommendations_get",
+    "parameters": [
+     {
+      "name": "authorization",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "Actions": {
+    "properties": {
+     "surge_beds": {
+      "type": "integer",
+      "maximum": 12.0,
+      "minimum": 0.0,
+      "title": "Surge Beds",
+      "default": 0
+     },
+     "extra_nurses": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "propertyNames": {
+       "enum": [
+        "day",
+        "evening",
+        "night"
+       ]
+      },
+      "type": "object",
+      "title": "Extra Nurses"
+     },
+     "discharge_push": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 3.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discharge Push",
+      "description": "ward discharge processing multiplier"
+     }
+    },
+    "type": "object",
+    "title": "Actions"
+   },
+   "AdvanceIn": {
+    "properties": {
+     "hours": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 1.0,
+      "title": "Hours"
+     },
+     "surge": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Surge"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "slowdown": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Slowdown"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "hours"
+    ],
+    "title": "AdvanceIn"
+   },
+   "Constraint": {
+    "properties": {
+     "discharge_slowdown_factor": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.1,
+      "title": "Discharge Slowdown Factor"
+     },
+     "hours": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 1.0,
+      "title": "Hours"
+     }
+    },
+    "type": "object",
+    "required": [
+     "discharge_slowdown_factor",
+     "hours"
+    ],
+    "title": "Constraint"
+   },
+   "FhirIn": {
+    "properties": {
+     "resourceType": {
+      "type": "string",
+      "const": "Bundle",
+      "title": "Resourcetype"
+     },
+     "entry": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "maxItems": 200,
+      "minItems": 1,
+      "title": "Entry"
+     }
+    },
+    "type": "object",
+    "required": [
+     "resourceType",
+     "entry"
+    ],
+    "title": "FhirIn"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "LoadIn": {
+    "properties": {
+     "seed": {
+      "type": "integer",
+      "maximum": 1000000.0,
+      "minimum": 0.0,
+      "title": "Seed",
+      "default": 17
+     }
+    },
+    "type": "object",
+    "title": "LoadIn"
+   },
+   "SimIn": {
+    "properties": {
+     "hours": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 2.0,
+      "title": "Hours",
+      "default": 12
+     },
+     "runs": {
+      "type": "integer",
+      "maximum": 100.0,
+      "minimum": 5.0,
+      "title": "Runs",
+      "default": 30
+     },
+     "actions": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Actions"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "known_constraints": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Constraint"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "what bed management has announced, such as a discharge slowdown"
+     },
+     "include_approved_actions": {
+      "type": "boolean",
+      "title": "Include Approved Actions",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "SimIn"
+   },
+   "Slowdown": {
+    "properties": {
+     "from_minutes": {
+      "type": "integer",
+      "maximum": 720.0,
+      "minimum": 0.0,
+      "title": "From Minutes"
+     },
+     "hours": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 1.0,
+      "title": "Hours"
+     },
+     "factor": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.1,
+      "title": "Factor",
+      "description": "ward discharge processing rate, 1 = normal"
+     }
+    },
+    "type": "object",
+    "required": [
+     "from_minutes",
+     "hours",
+     "factor"
+    ],
+    "title": "Slowdown"
+   },
+   "StaffIn": {
+    "properties": {
+     "hours": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 4.0,
+      "title": "Hours",
+      "default": 16
+     },
+     "runs": {
+      "type": "integer",
+      "maximum": 100.0,
+      "minimum": 5.0,
+      "title": "Runs",
+      "default": 30
+     },
+     "known_constraints": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Constraint"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "max_call_ins_per_shift": {
+      "type": "integer",
+      "maximum": 6.0,
+      "minimum": 0.0,
+      "title": "Max Call Ins Per Shift",
+      "default": 4
+     }
+    },
+    "type": "object",
+    "title": "StaffIn"
+   },
+   "Surge": {
+    "properties": {
+     "in_minutes": {
+      "type": "integer",
+      "maximum": 720.0,
+      "minimum": 0.0,
+      "title": "In Minutes"
+     },
+     "patients": {
+      "type": "integer",
+      "maximum": 80.0,
+      "minimum": 1.0,
+      "title": "Patients"
+     },
+     "spread_min": {
+      "type": "integer",
+      "maximum": 240.0,
+      "minimum": 5.0,
+      "title": "Spread Min",
+      "default": 60
+     },
+     "complaint": {
+      "type": "string",
+      "enum": [
+       "injury",
+       "respiratory",
+       "fever",
+       "other"
+      ],
+      "title": "Complaint",
+      "default": "injury"
+     }
+    },
+    "type": "object",
+    "required": [
+     "in_minutes",
+     "patients"
+    ],
+    "title": "Surge"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   }
+  }
+ }
+}

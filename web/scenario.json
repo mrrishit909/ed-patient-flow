@@ -1,0 +1,302 @@
+{
+ "service": "ed-patient-flow",
+ "run": "demo-1",
+ "tokens": {
+  "director": "hosp-ops_director-demo",
+  "charge": "hosp-charge_nurse-demo",
+  "viewer": "hosp-viewer-demo"
+ },
+ "steps": [
+  {
+   "title": "A normal Tuesday morning",
+   "say": "An invented 32-bed emergency department with two CT scanners and 122 ward beds behind it, at 07:00 on a Tuesday after sixteen weeks of history: about 140 arrivals a day, a fifth admitted. Models fitted on that history and tested on the last two weeks: an arrival profile by hour and weekday, an admission classifier, a length-of-stay model (which turns out no better than the median by triage level, and says so) and the wards' turnover. Encounters carry a hashed token and an age band, nothing else about the person.",
+   "calls": [
+    {
+     "key": "load",
+     "as": "director",
+     "method": "POST",
+     "path": "/v1/hospital:load",
+     "body": {
+      "seed": 17
+     }
+    },
+    {
+     "key": "cap0",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/capacity/current"
+    }
+   ]
+  },
+  {
+   "title": "The next 24 hours as the models see them",
+   "say": "Expected arrivals per hour with an 80% band and the share at triage 1-2; ward discharges and admissions expected hour by hour and the free beds that leaves; and the baseline simulation: the department run forward twelve hours thirty times from its live state, with bands on waiting, boarding, the CT queue and the KPIs.",
+   "calls": [
+    {
+     "key": "arr",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/forecast/arrivals?hours=24"
+    },
+    {
+     "key": "beds",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/forecast/beds?hours=24"
+    },
+    {
+     "key": "sim0",
+     "as": "charge",
+     "method": "POST",
+     "path": "/v1/simulations/flow",
+     "body": {
+      "hours": 12,
+      "runs": 30
+     }
+    }
+   ]
+  },
+  {
+   "title": "Four hours pass: a surge and a discharge slowdown",
+   "say": "The clock moves to 11:00. The generator is told what happens, which is the demo's way of injecting a disruption: thirty injured patients arrive over an hour from 10:00, and the wards process discharges at 40% of their normal rate for eight hours from 09:00. The service sees only the encounters and events.",
+   "calls": [
+    {
+     "key": "adv",
+     "as": "director",
+     "method": "POST",
+     "path": "/v1/hospital:advance",
+     "body": {
+      "hours": 4,
+      "surge": {
+       "in_minutes": 180,
+       "patients": 30,
+       "spread_min": 60,
+       "complaint": "injury"
+      },
+      "slowdown": {
+       "from_minutes": 120,
+       "hours": 8,
+       "factor": 0.4
+      }
+     }
+    }
+   ]
+  },
+  {
+   "title": "Three more are announced by FHIR, and the board goes red",
+   "say": "The ambulance service sends a FHIR Bundle: three Encounter resources with a triage level, an age and a reason, two of them valid and one without a timezone, which is refused. The accepted arrivals join the live state. The capacity view now carries alerts: the waiting room, the nurse ratio, the CT queue and the ward.",
+   "calls": [
+    {
+     "key": "fhir",
+     "as": "charge",
+     "method": "POST",
+     "path": "/v1/events/fhir",
+     "body": {
+      "resourceType": "Bundle",
+      "entry": [
+       {
+        "resource": {
+         "resourceType": "Encounter",
+         "id": "amb-1",
+         "status": "planned",
+         "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "EMER"
+         },
+         "priority": {
+          "coding": [
+           {
+            "system": "esi",
+            "code": "2"
+           }
+          ]
+         },
+         "subject": {
+          "reference": "Patient/transfer-1"
+         },
+         "period": {
+          "start": "2026-10-05T11:30:00Z"
+         },
+         "reasonCode": [
+          {
+           "text": "injury"
+          }
+         ],
+         "extension": [
+          {
+           "url": "http://example.invalid/fhir/StructureDefinition/patient-age",
+           "valueInteger": 44
+          }
+         ]
+        }
+       },
+       {
+        "resource": {
+         "resourceType": "Encounter",
+         "id": "amb-2",
+         "status": "planned",
+         "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "EMER"
+         },
+         "priority": {
+          "coding": [
+           {
+            "system": "esi",
+            "code": "3"
+           }
+          ]
+         },
+         "subject": {
+          "reference": "Patient/transfer-2"
+         },
+         "period": {
+          "start": "2026-10-05T11:45:00Z"
+         },
+         "reasonCode": [
+          {
+           "text": "injury"
+          }
+         ],
+         "extension": [
+          {
+           "url": "http://example.invalid/fhir/StructureDefinition/patient-age",
+           "valueInteger": 31
+          }
+         ]
+        }
+       },
+       {
+        "resource": {
+         "resourceType": "Encounter",
+         "id": "amb-3",
+         "status": "planned",
+         "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "EMER"
+         },
+         "priority": {
+          "coding": [
+           {
+            "system": "esi",
+            "code": "3"
+           }
+          ]
+         },
+         "subject": {
+          "reference": "Patient/transfer-3"
+         },
+         "period": {
+          "start": "2026-10-05T11:40:00"
+         },
+         "reasonCode": [
+          {
+           "text": "injury"
+          }
+         ],
+         "extension": [
+          {
+           "url": "http://example.invalid/fhir/StructureDefinition/patient-age",
+           "valueInteger": 58
+          }
+         ]
+        }
+       }
+      ]
+     }
+    },
+    {
+     "key": "cap1",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/capacity/current"
+    }
+   ]
+  },
+  {
+   "title": "Predicted boarding and waiting, with and without action",
+   "say": "The simulation again, from the new state, told what bed management knows: discharges are slow for six more hours. Baseline against a package of actions a charge nurse might take: six surge beds, two extra nurses on the day and evening shifts, and a discharge push on the wards. Peak waiting, boarding and door-to-bed with bands, side by side. The honest finding: the actions help, and the surge still takes most of the day to clear, because the binding constraint is bed-hours.",
+   "calls": [
+    {
+     "key": "sim1",
+     "as": "charge",
+     "method": "POST",
+     "path": "/v1/simulations/flow",
+     "body": {
+      "hours": 12,
+      "runs": 30,
+      "known_constraints": {
+       "discharge_slowdown_factor": 0.4,
+       "hours": 6
+      },
+      "actions": {
+       "surge_beds": 6,
+       "extra_nurses": {
+        "day": 2,
+        "evening": 2
+       },
+       "discharge_push": 1.5
+      }
+     }
+    }
+   ]
+  },
+  {
+   "title": "A staffing recommendation, proposed",
+   "say": "The optimiser: the P80 census per shift from the baseline runs, the nurses needed at a ratio of four, and the cheapest call-ins from the on-call pool by CP-SAT; surge beds and a discharge push added where the runs say they help. It is a proposal with a rationale and an expected effect. Nothing changes in the department.",
+   "calls": [
+    {
+     "key": "staff",
+     "as": "charge",
+     "method": "POST",
+     "path": "/v1/optimizations/staffing",
+     "body": {
+      "hours": 16,
+      "runs": 30,
+      "known_constraints": {
+       "discharge_slowdown_factor": 0.4,
+       "hours": 6
+      }
+     }
+    }
+   ]
+  },
+  {
+   "title": "A person decides",
+   "say": "The charge nurse who proposed it cannot approve it; a viewer cannot either. The operations director approves, the call-ins become real shifts, and the capacity view shows the actions as active. Then the recommendation list and the audit log.",
+   "calls": [
+    {
+     "key": "self",
+     "expect_error": true,
+     "as": "charge",
+     "method": "POST",
+     "path": "/v1/recommendations/{{staff.recommendation_id}}/approve"
+    },
+    {
+     "key": "approve",
+     "as": "director",
+     "method": "POST",
+     "path": "/v1/recommendations/{{staff.recommendation_id}}/approve?decision=approved"
+    },
+    {
+     "key": "cap2",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/capacity/current"
+    },
+    {
+     "key": "recs",
+     "as": "viewer",
+     "method": "GET",
+     "path": "/v1/recommendations"
+    },
+    {
+     "key": "audit",
+     "as": "director",
+     "method": "GET",
+     "path": "/v1/audit?limit=12"
+    }
+   ]
+  }
+ ]
+}
